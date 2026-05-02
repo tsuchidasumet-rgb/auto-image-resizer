@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  GameImageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: watermark-game-${AWS::AccountId}
+  WatermarkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: WatermarkFunction
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      MemorySize: 512
+      Timeout: 30
+      Policies:
+      - S3ReadPolicy:
+          BucketName:
+            Fn::Sub: watermark-game-${AWS::AccountId}
+      - S3WritePolicy:
+          BucketName:
+            Fn::Sub: watermark-game-${AWS::AccountId}
+      Events:
+        FileUpload:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: GameImageBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                - Name: prefix
+                  Value: uploads/
+    Metadata:
+      SamResourceId: WatermarkFunction
