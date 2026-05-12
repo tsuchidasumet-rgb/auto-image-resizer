@@ -9,4 +9,13 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["WatermarkFunction"]
 
+[function_build_definitions.f8990e62-0f4f-4d8a-85da-4d3c72928d17]
+codeuri = "D:\\Projects\\auto-image-resizer\\api"
+runtime = "python3.12"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["HttpApiFunction"]
+
 [layer_build_definitions]

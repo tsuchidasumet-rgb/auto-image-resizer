@@ -1,22 +1,32 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Globals:
+  Function:
+    Runtime: python3.12
+    MemorySize: 512
+    Timeout: 30
+    Environment:
+      Variables:
+        BUCKET_NAME: !Sub "watermark-game-${AWS::AccountId}"
+        USER_POOL_CLIENT_ID: !Ref UserPoolClient
+
 Resources:
-  # ถังเก็บรูปภาพ
   GameImageBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "watermark-game-${AWS::AccountId}"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: ["*"]
+            AllowedMethods: [GET, PUT, POST]
+            AllowedHeaders: ["*"]
 
-  # ฟังก์ชันใส่ลายน้ำ
   WatermarkFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: resizer/
       Handler: app.lambda_handler
-      Runtime: python3.12
-      MemorySize: 512
-      Timeout: 30
       Policies:
         - S3ReadPolicy:
             BucketName: !Sub "watermark-game-${AWS::AccountId}"
@@ -33,3 +43,121 @@ Resources:
                 Rules:
                   - Name: prefix
                     Value: uploads/
+
+  HttpApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: api/
+      Handler: app.lambda_handler
+      Environment:
+        Variables:
+          BUCKET_NAME: !Sub "watermark-game-${AWS::AccountId}"
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub "watermark-game-${AWS::AccountId}"
+        - S3WritePolicy:
+            BucketName: !Sub "watermark-game-${AWS::AccountId}"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !Sub "arn:aws:s3:::watermark-game-${AWS::AccountId}"
+            - Effect: Allow
+              Action:
+                - cognito-idp:InitiateAuth
+                - cognito-idp:SignUp
+                - cognito-idp:ConfirmSignUp
+                - cognito-idp:GetUser
+              Resource: !GetAtt UserPool.Arn
+      Events:
+        UploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /upload
+            Method: POST
+        ListImages:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /images
+            Method: GET
+        Register:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /auth/register
+            Method: POST
+        Login:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /auth/login
+            Method: POST
+        Confirm:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /auth/confirm
+            Method: POST
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - OPTIONS
+        AllowHeaders:
+          - "*"
+        MaxAge: 300
+        AllowCredentials: false
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: watermark-game-users
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+      Schema:
+        - Name: nickname
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: watermark-game-client
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      AccessTokenValidity: 24
+      TokenValidityUnits:
+        AccessToken: hours
+
+Outputs:
+  ApiEndpoint:
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+    Description: "API Endpoint"
+  UserPoolId:
+    Value: !Ref UserPool
+    Description: "Cognito User Pool ID"
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
+    Description: "Cognito Client ID"

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watermark Studio — เข้าสู่ระบบ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap');
+
+:root {
+  --ink: #1a1209;
+  --paper: #f5f0e8;
+  --paper2: #ede8dc;
+  --accent: #c8502a;
+  --accent2: #2a6b4a;
+  --muted: #8a7d6a;
+  --border: #d4c9b4;
+  --white: #fdfaf4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Noto Sans Thai', serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* grain */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.4;
+}
+
+header {
+  border-bottom: 1.5px solid var(--border);
+  padding: 0 48px;
+  display: flex;
+  align-items: center;
+  height: 64px;
+  background: var(--white);
+}
+
+.logo-mark {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--ink);
+}
+.logo-mark em { font-style: italic; color: var(--accent); }
+
+.logo-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  margin-left: 12px;
+  text-transform: uppercase;
+}
+
+/* Main */
+main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+}
+
+.card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+}
+
+/* Tabs */
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.tab {
+  padding: 16px;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: transparent;
+}
+
+.tab.active {
+  color: var(--accent);
+  background: var(--paper);
+  border-bottom: 2px solid var(--accent);
+}
+
+/* Forms */
+.form-wrap {
+  padding: 32px 28px;
+}
+
+.form-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.form-title em { font-style: italic; color: var(--accent); }
+
+.form-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 28px;
+  line-height: 1.7;
+}
+
+.field {
+  margin-bottom: 18px;
+}
+
+.field label {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.field input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  background: var(--paper);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.field input:focus { border-color: var(--accent); }
+
+.btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 3px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #a8401a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(200,80,42,0.3);
+}
+
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--accent2);
+  border: 1.5px solid var(--accent2);
+  margin-top: 10px;
+}
+
+.btn-secondary:hover {
+  background: rgba(42,107,74,0.08);
+}
+
+/* Alert */
+.alert {
+  padding: 11px 14px;
+  border-radius: 3px;
+  font-size: 13px;
+  margin-bottom: 18px;
+  display: none;
+  line-height: 1.6;
+}
+
+.alert.show { display: block; }
+.alert.success { background: rgba(42,107,74,0.1); border: 1px solid var(--accent2); color: var(--accent2); }
+.alert.error { background: rgba(200,80,42,0.1); border: 1px solid var(--accent); color: var(--accent); }
+.alert.info { background: rgba(184,134,11,0.1); border: 1px solid var(--gold, #b8860b); color: #7a5c00; }
+
+/* OTP section */
+.otp-section { display: none; }
+.otp-section.show { display: block; }
+
+.divider {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  margin: 20px 0;
+  position: relative;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 38%;
+  height: 1px;
+  background: var(--border);
+}
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.back-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.back-link a {
+  color: var(--accent);
+  text-decoration: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo-mark">Water<em>mark</em> Studio</span>
+  <span class="logo-sub">Marketplace</span>
+</header>
+
+<main>
+  <div class="card">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">เข้าสู่ระบบ</button>
+      <button class="tab" onclick="switchTab('register')">สมัครสมาชิก</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form-wrap" id="form-login">
+      <h2 class="form-title">ยินดี<em>ต้อนรับ</em></h2>
+      <p class="form-sub">เข้าสู่ระบบเพื่อจัดการสินค้าของคุณ</p>
+
+      <div class="alert" id="login-alert"></div>
+
+      <div class="field">
+        <label>อีเมล</label>
+        <input type="email" id="login-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>รหัสผ่าน</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+      </div>
+
+      <button class="btn btn-primary" id="btn-login" onclick="doLogin()">เข้าสู่ระบบ</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="form-wrap" id="form-register" style="display:none">
+      <h2 class="form-title">สมัคร<em>สมาชิก</em></h2>
+      <p class="form-sub">สร้างบัญชีเพื่อเริ่มขายสินค้าในตลาด</p>
+
+      <div class="alert" id="reg-alert"></div>
+
+      <!-- Step 1: ข้อมูล -->
+      <div id="reg-step1">
+        <div class="field">
+          <label>ชื่อ Seller (แสดงเป็นลายน้ำ)</label>
+          <input type="text" id="reg-nickname" placeholder="เช่น Sumet Tsuchida">
+        </div>
+        <div class="field">
+          <label>อีเมล</label>
+          <input type="email" id="reg-email" placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label>รหัสผ่าน (อย่างน้อย 8 ตัว)</label>
+          <input type="password" id="reg-password" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" id="btn-register" onclick="doRegister()">สมัครสมาชิก</button>
+      </div>
+
+      <!-- Step 2: OTP -->
+      <div id="reg-step2" class="otp-section">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.8">
+          ส่งรหัสยืนยัน 6 หลักไปที่อีเมลของคุณแล้ว<br>กรุณาตรวจสอบกล่องจดหมาย (รวมถึง Spam)
+        </p>
+        <div class="field">
+          <label>รหัสยืนยัน OTP</label>
+          <input type="text" id="otp-code" placeholder="123456" maxlength="6" style="letter-spacing:6px;font-size:20px;text-align:center">
+        </div>
+        <button class="btn btn-primary" onclick="doConfirm()">ยืนยันอีเมล</button>
+        <div class="divider">หรือ</div>
+        <button class="btn btn-secondary" onclick="resendOtp()">ส่งรหัสใหม่อีกครั้ง</button>
+      </div>
+
+      <div class="back-link">
+        <a href="#" onclick="switchTab('login')">← กลับไปหน้าเข้าสู่ระบบ</a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const API = 'https://l5sw03zchf.execute-api.ap-northeast-1.amazonaws.com';
+
+let pendingEmail = '';
+
+// ─── Tab switch ────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+  });
+  document.getElementById('form-login').style.display    = tab === 'login' ? 'block' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+// ─── Alert helpers ─────────────────────────────
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = `alert ${type} show`;
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.textContent = loading ? 'กำลังดำเนินการ...' : btn.dataset.label || btn.textContent;
+}
+
+// ─── Login ─────────────────────────────────────
+async function doLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) return showAlert('login-alert', 'กรุณากรอกข้อมูลให้ครบ', 'error');
+
+  setLoading('btn-login', true);
+
+  try {
+    const res  = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'เข้าสู่ระบบไม่สำเร็จ');
+
+    // บันทึก token
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+
+    showAlert('login-alert', '✓ เข้าสู่ระบบสำเร็จ! กำลังพาไปหน้าหลัก...', 'success');
+    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+
+  } catch (err) {
+    showAlert('login-alert', `✕ ${err.message}`, 'error');
+  }
+
+  setLoading('btn-login', false);
+}
+
+// ─── Register ──────────────────────────────────
+async function doRegister() {
+  const nickname = document.getElementById('reg-nickname').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  if (!nickname || !email || !password) return showAlert('reg-alert', 'กรุณากรอกข้อมูลให้ครบ', 'error');
+  if (password.length < 8) return showAlert('reg-alert', 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร', 'error');
+
+  setLoading('btn-register', true);
+
+  try {
+    const res  = await fetch(`${API}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, nickname })
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'สมัครสมาชิกไม่สำเร็จ');
+
+    pendingEmail = email;
+    showAlert('reg-alert', '✓ ส่งรหัส OTP ไปที่อีเมลแล้ว', 'success');
+
+    // แสดง OTP step
+    document.getElementById('reg-step1').style.display = 'none';
+    document.getElementById('reg-step2').classList.add('show');
+
+  } catch (err) {
+    showAlert('reg-alert', `✕ ${err.message}`, 'error');
+  }
+
+  setLoading('btn-register', false);
+}
+
+// ─── Confirm OTP ───────────────────────────────
+async function doConfirm() {
+  const code = document.getElementById('otp-code').value.trim();
+  if (!code) return showAlert('reg-alert', 'กรุณากรอกรหัส OTP', 'error');
+
+  try {
+    const res  = await fetch(`${API}/auth/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: pendingEmail, code })
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'รหัส OTP ไม่ถูกต้อง');
+
+    showAlert('reg-alert', '✓ ยืนยันอีเมลสำเร็จ! กรุณาเข้าสู่ระบบ', 'success');
+    setTimeout(() => switchTab('login'), 1500);
+
+  } catch (err) {
+    showAlert('reg-alert', `✕ ${err.message}`, 'error');
+  }
+}
+
+// ─── Resend OTP ────────────────────────────────
+async function resendOtp() {
+  if (!pendingEmail) return;
+  try {
+    await fetch(`${API}/auth/resend`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: pendingEmail })
+    });
+    showAlert('reg-alert', '✓ ส่งรหัสใหม่แล้ว กรุณาตรวจสอบอีเมล', 'info');
+  } catch (err) {
+    showAlert('reg-alert', `✕ ${err.message}`, 'error');
+  }
+}
+
+// Enter key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const loginVisible = document.getElementById('form-login').style.display !== 'none';
+    if (loginVisible) doLogin();
+  }
+});
+
+// ตรวจสอบว่า login แล้วหรือยัง
+if (localStorage.getItem('accessToken')) {
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>

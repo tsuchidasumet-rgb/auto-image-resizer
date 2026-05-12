@@ -11,11 +11,14 @@ def lambda_handler(event, context):
         bucket = event['Records'][0]['s3']['bucket']['name']
         key = event['Records'][0]['s3']['object']['key']
         
-        # 2. ดึงรูปและ Metadata (เพื่อเอาชื่อ User)
+        # 2. ดึงรูปและ Metadata
         response = s3.get_object(Bucket=bucket, Key=key)
-        metadata = response.get('Metadata', {})
-        user_name = metadata.get('username', 'Unknown Seller')
         
+        # ดึง Metadata (ชื่อที่ส่งมาจาก API)
+        metadata = response.get('Metadata', {})
+        user_name = metadata.get('username', 'Sumet Tsuchida') 
+        
+        # ดึงไฟล์รูปภาพออกมาเป็น bytes (สำคัญ: ต้องมีบรรทัดนี้!)
         image_content = response['Body'].read()
         
         # 3. เริ่มจัดการรูปภาพ
@@ -30,7 +33,7 @@ def lambda_handler(event, context):
             # ปรับขนาดฟอนต์ตามความกว้างรูป (ประมาณ 4%)
             font_size = int(width * 0.04)
             try:
-                # แก้ชื่อไฟล์ฟอนต์ให้ตรงกับที่คุณโหลดมาใส่ในโฟลเดอร์นะครับ
+                # ต้องมั่นใจว่าไฟล์ Montserrat-Bold.ttf อยู่ในโฟลเดอร์เดียวกับโค้ด
                 font = ImageFont.truetype("Montserrat-Bold.ttf", font_size)
             except:
                 font = ImageFont.load_default()
@@ -39,15 +42,16 @@ def lambda_handler(event, context):
             
             # คำนวณตำแหน่งมุมขวาล่าง
             margin = int(width * 0.05)
+            # ดึงขนาดของ Text เพื่อคำนวณตำแหน่ง
             left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
             text_width = right - left
             text_height = bottom - top
             position = (width - text_width - margin, height - text_height - margin)
 
-            # วาดลายน้ำ (สีขาวโปร่งแสง)
+            # วาดลายน้ำ (สีขาวโปร่งแสง 160/255)
             draw.text(position, text, fill=(255, 255, 255, 160), font=font)
             
-            # รวมรูปและเซฟเป็น JPEG
+            # รวมรูปและเซฟเป็น RGB (JPEG ไม่รองรับความโปร่งใส)
             final_img = Image.alpha_composite(img, txt_layer).convert("RGB")
             buffer = io.BytesIO()
             final_img.save(buffer, format="JPEG", quality=85)
@@ -65,5 +69,5 @@ def lambda_handler(event, context):
         return {"statusCode": 200, "body": "Success"}
 
     except Exception as e:
-        print(e)
+        print(f"Error processing image: {str(e)}")
         return {"statusCode": 500, "body": str(e)}
