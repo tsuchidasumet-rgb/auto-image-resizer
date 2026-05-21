@@ -53,6 +53,47 @@ Resources:
                   Value: uploads/
     Metadata:
       SamResourceId: WatermarkFunction
+  UserProfilesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Fn::Sub: jibun-user-profiles-${AWS::AccountId}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: email
+        AttributeType: S
+      KeySchema:
+      - AttributeName: email
+        KeyType: HASH
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Fn::Sub: jibun-orders-${AWS::AccountId}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: orderId
+        AttributeType: S
+      - AttributeName: buyerEmail
+        AttributeType: S
+      - AttributeName: sellerEmail
+        AttributeType: S
+      KeySchema:
+      - AttributeName: orderId
+        KeyType: HASH
+      GlobalSecondaryIndexes:
+      - IndexName: buyer-email-index
+        KeySchema:
+        - AttributeName: buyerEmail
+          KeyType: HASH
+        Projection:
+          ProjectionType: ALL
+      - IndexName: seller-email-index
+        KeySchema:
+        - AttributeName: sellerEmail
+          KeyType: HASH
+        Projection:
+          ProjectionType: ALL
   HttpApiFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -64,6 +105,10 @@ Resources:
             Fn::Sub: watermark-game-${AWS::AccountId}
           USER_POOL_CLIENT_ID:
             Ref: UserPoolClient
+          PROFILES_TABLE:
+            Ref: UserProfilesTable
+          ORDERS_TABLE:
+            Ref: OrdersTable
       Policies:
       - S3ReadPolicy:
           BucketName:
@@ -79,6 +124,11 @@ Resources:
             Fn::Sub: arn:aws:s3:::watermark-game-${AWS::AccountId}
         - Effect: Allow
           Action:
+          - s3:DeleteObject
+          Resource:
+            Fn::Sub: arn:aws:s3:::watermark-game-${AWS::AccountId}/*
+        - Effect: Allow
+          Action:
           - cognito-idp:InitiateAuth
           - cognito-idp:SignUp
           - cognito-idp:ConfirmSignUp
@@ -87,6 +137,20 @@ Resources:
             Fn::GetAtt:
             - UserPool
             - Arn
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+          Resource:
+          - Fn::GetAtt:
+            - UserProfilesTable
+            - Arn
+          - Fn::GetAtt:
+            - OrdersTable
+            - Arn
+          - Fn::Sub: ${OrdersTable.Arn}/index/*
       Events:
         UploadUrl:
           Type: HttpApi
@@ -102,6 +166,13 @@ Resources:
               Ref: HttpApi
             Path: /images
             Method: GET
+        DeleteImage:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: HttpApi
+            Path: /images/delete
+            Method: POST
         Register:
           Type: HttpApi
           Properties:
@@ -123,6 +194,48 @@ Resources:
               Ref: HttpApi
             Path: /auth/confirm
             Method: POST
+        GetProfile:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: HttpApi
+            Path: /me/profile
+            Method: GET
+        PutProfile:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: HttpApi
+            Path: /me/profile
+            Method: PUT
+        AvatarUpload:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: HttpApi
+            Path: /me/avatar
+            Method: POST
+        OrdersBuying:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: HttpApi
+            Path: /me/orders/buying
+            Method: GET
+        OrdersSelling:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: HttpApi
+            Path: /me/orders/selling
+            Method: GET
+        BuyProduct:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: HttpApi
+            Path: /orders/buy
+            Method: POST
     Metadata:
       SamResourceId: HttpApiFunction
   HttpApi:
@@ -135,6 +248,7 @@ Resources:
         - GET
         - POST
         - PUT
+        - DELETE
         - OPTIONS
         AllowHeaders:
         - '*'
@@ -158,7 +272,7 @@ Resources:
       - Name: nickname
         AttributeDataType: String
         Mutable: true
-        Required: true
+        Required: false
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:

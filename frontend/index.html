@@ -3,660 +3,1087 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kakusu Market — ตลาดออนไลน์</title>
+<title>Jibun Market — ตลาดซื้อขายออนไลน์</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap');
-
 :root {
-  --bg: #0e0c0a;
-  --surface: #181410;
-  --surface2: #211d18;
-  --border: #2e2820;
-  --border2: #3d352a;
-  --accent: #d4924a;
-  --accent2: #8fba6e;
-  --red: #c0392b;
-  --text: #f0ead8;
-  --muted: #7a6e5e;
+  --brand: #ff0211;
+  --brand-dark: #e6000f;
+  --brand-light: #fff0f0;
+  --bg: #f5f5f5;
+  --surface: #fff;
+  --text: #222;
+  --text-sub: #888;
+  --border: #e8e8e8;
+  --shadow: 0 1px 4px rgba(0,0,0,.08);
+  --radius: 8px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
+  font-family: 'Noto Sans Thai', sans-serif;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Noto Sans Thai', sans-serif;
   min-height: 100vh;
+  padding-bottom: 64px;
 }
 
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 9999;
-}
-
-header {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(14,12,10,0.92);
-  backdrop-filter: blur(12px);
+.header {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
-  display: flex; align-items: center;
-  height: 60px; padding: 0 28px; gap: 0;
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .logo {
-  font-family: 'Shippori Mincho', serif;
-  font-size: 20px; font-weight: 700;
-  color: var(--text); text-decoration: none;
-  display: flex; align-items: center; gap: 10px;
-}
-
-.logo-badge {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px; letter-spacing: 2px;
-  color: var(--accent); border: 1px solid var(--accent);
-  padding: 2px 7px; border-radius: 2px;
-}
-
-nav { display: flex; gap: 4px; margin-left: 32px; }
-
-.nav-link {
-  font-family: 'DM Mono', monospace; font-size: 11px;
-  letter-spacing: 1px; color: var(--muted);
-  text-decoration: none; padding: 6px 12px;
-  border-radius: 3px; transition: all 0.2s;
-}
-.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
-
-.header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-
-.user-chip {
   display: flex; align-items: center; gap: 8px;
-  padding: 6px 14px;
-  border: 1px solid var(--border2); border-radius: 20px;
-  font-size: 12px; color: var(--muted);
-  font-family: 'DM Mono', monospace;
+  text-decoration: none; color: var(--text); flex-shrink: 0;
 }
 
-.user-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--accent2); box-shadow: 0 0 6px var(--accent2);
-}
-
-.btn-sm {
-  padding: 7px 16px; border-radius: 3px;
-  font-family: 'DM Mono', monospace; font-size: 11px;
-  letter-spacing: 1px; cursor: pointer; transition: all 0.2s; border: none;
-}
-.btn-ghost {
-  background: transparent; color: var(--muted);
-  border: 1px solid var(--border2);
-}
-.btn-ghost:hover { color: var(--text); border-color: var(--text); }
-
-.hero {
-  border-bottom: 1px solid var(--border);
-  padding: 48px 28px 40px;
-  display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
-  background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 60%);
-  position: relative; overflow: hidden;
-}
-.hero::before {
-  content: '隠す';
-  position: absolute; right: -20px; top: -20px;
-  font-family: 'Shippori Mincho', serif; font-size: 180px;
-  color: rgba(212,146,74,0.04); pointer-events: none; line-height: 1;
-}
-
-.hero-text h1 {
-  font-family: 'Shippori Mincho', serif;
-  font-size: 38px; font-weight: 700;
-  line-height: 1.2; margin-bottom: 10px; letter-spacing: -1px;
-}
-.hero-text h1 span { color: var(--accent); }
-.hero-text p { font-size: 14px; color: var(--muted); line-height: 1.8; max-width: 400px; }
-
-.hero-stats { display: flex; gap: 28px; flex-shrink: 0; }
-.stat { text-align: right; }
-.stat-n {
-  font-family: 'Shippori Mincho', serif; font-size: 28px;
-  font-weight: 700; color: var(--accent); line-height: 1;
-}
-.stat-l {
-  font-family: 'DM Mono', monospace; font-size: 10px;
-  letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-top: 4px;
-}
-
-.page-layout {
-  display: grid; grid-template-columns: 260px 1fr;
-  min-height: calc(100vh - 200px);
-}
-
-.sidebar { border-right: 1px solid var(--border); padding: 24px 20px; }
-
-.sidebar-label {
-  font-family: 'DM Mono', monospace; font-size: 9px;
-  letter-spacing: 2.5px; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 10px;
-  padding-bottom: 8px; border-bottom: 1px solid var(--border);
-}
-
-.sidebar-section { margin-bottom: 28px; }
-
-.category-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 10px; border-radius: 3px; cursor: pointer;
-  transition: all 0.15s; font-size: 13px; color: var(--muted); margin-bottom: 2px;
-}
-.category-item:hover, .category-item.active { background: var(--surface2); color: var(--text); }
-.cat-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
-
-.upload-panel {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 16px;
-}
-
-.upload-zone {
-  border: 1.5px dashed var(--border2); border-radius: 3px;
-  padding: 20px 12px; text-align: center; cursor: pointer;
-  transition: all 0.2s; position: relative; margin-bottom: 12px;
-}
-.upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: rgba(212,146,74,0.05); }
-.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-.upload-zone-icon { font-size: 24px; display: block; margin-bottom: 6px; opacity: 0.5; }
-.upload-zone p { font-size: 11px; color: var(--muted); line-height: 1.7; }
-.upload-zone strong { display: block; font-size: 12px; color: var(--text); margin-bottom: 2px; }
-
-.thumb-preview {
-  width: 100%; height: 80px; border-radius: 3px;
-  overflow: hidden; background: var(--surface2); margin-bottom: 10px;
+.logo-mark {
+  width: 34px; height: 34px;
+  background: var(--brand);
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
   display: flex; align-items: center; justify-content: center;
-}
-.thumb-preview img { width: 100%; height: 100%; object-fit: cover; }
-.thumb-preview span { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
-
-.field-sm { margin-bottom: 10px; }
-.field-sm label {
-  display: block; font-family: 'DM Mono', monospace;
-  font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 5px;
-}
-.field-sm input, .field-sm textarea {
-  width: 100%; padding: 8px 10px;
-  background: var(--surface2); border: 1px solid var(--border2);
-  border-radius: 3px; color: var(--text);
-  font-family: 'Noto Sans Thai', sans-serif; font-size: 12px;
-  outline: none; transition: border-color 0.2s; resize: none;
-}
-.field-sm input:focus, .field-sm textarea:focus { border-color: var(--accent); }
-
-.btn-full {
-  width: 100%; padding: 10px;
-  background: var(--accent); color: var(--bg); border: none; border-radius: 3px;
-  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500;
-  letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
-}
-.btn-full:hover:not(:disabled) { background: #e6a55c; }
-.btn-full:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.progress-bar-wrap {
-  height: 2px; background: var(--border); border-radius: 2px;
-  overflow: hidden; margin-top: 8px; opacity: 0; transition: opacity 0.3s;
-}
-.progress-bar-wrap.show { opacity: 1; }
-.progress-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s ease; }
-
-.upload-msg {
-  font-size: 11px; margin-top: 8px;
-  font-family: 'DM Mono', monospace; display: none; line-height: 1.6;
-}
-.upload-msg.show { display: block; }
-.upload-msg.success { color: var(--accent2); }
-.upload-msg.error { color: var(--red); }
-.upload-msg.info { color: var(--accent); }
-
-.main-content { padding: 24px 28px; }
-
-.content-header {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
-}
-.content-title { font-family: 'Shippori Mincho', serif; font-size: 20px; font-weight: 600; }
-.content-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-
-.product-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
-  overflow: hidden; cursor: pointer; transition: all 0.25s;
-  animation: cardIn 0.4s ease both; text-decoration: none; color: inherit; display: block;
-}
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.product-card:hover {
-  border-color: var(--border2); transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+  line-height: 1.1;
+  text-align: center;
 }
 
-.card-img-wrap {
-  position: relative; padding-top: 100%;
-  background: var(--surface2); overflow: hidden;
-}
-.card-img-wrap img {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; transition: transform 0.4s;
-}
-.product-card:hover .card-img-wrap img { transform: scale(1.04); }
+.logo-name { font-weight: 700; font-size: 17px; }
 
-.card-seller-badge {
-  position: absolute; bottom: 6px; left: 6px;
-  background: rgba(14,12,10,0.75); backdrop-filter: blur(6px);
-  border-radius: 2px; padding: 3px 8px;
-  font-family: 'DM Mono', monospace; font-size: 9px;
-  color: rgba(240,234,216,0.8); letter-spacing: 0.5px;
+.search {
+  flex: 1; max-width: 420px;
+  background: var(--bg);
+  border: none;
+  border-radius: 20px;
+  padding: 10px 16px 10px 40px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.06a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 14px center;
 }
-.card-new-badge {
+
+.header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.user-label { font-size: 12px; color: var(--text-sub); display: none; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (min-width: 640px) { .user-label { display: block; } }
+
+.btn-ghost {
+  background: none; border: none; font-size: 13px; color: var(--text-sub);
+  cursor: pointer; padding: 6px 10px; border-radius: 4px; font-family: inherit;
+}
+.btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+.toolbar {
+  max-width: 960px; margin: 0 auto;
+  padding: 14px 16px 8px;
+}
+
+.toolbar-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; gap: 8px;
+}
+
+.toolbar-row h1 { font-size: 16px; font-weight: 600; }
+.count { font-size: 13px; color: var(--text-sub); }
+
+.filters {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin-bottom: 10px;
+}
+
+.chip {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--text-sub);
+  transition: .15s;
+}
+.chip:hover { border-color: var(--brand); color: var(--brand); }
+.chip.active { background: var(--brand-light); border-color: var(--brand); color: var(--brand); font-weight: 600; }
+
+.sort-select {
+  margin-left: auto;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--surface);
+  outline: none;
+}
+
+.btn-icon {
+  width: 36px; height: 36px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.main { max-width: 960px; margin: 0 auto; padding: 0 8px 24px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 600px) { .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; } }
+@media (min-width: 900px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  position: relative;
+  animation: fadeUp .3s ease both;
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.card-img {
+  position: relative;
+  padding-top: 100%;
+  background: #eee;
+}
+.card-img img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+.badge-new {
+  position: absolute; top: 8px; left: 8px;
+  background: var(--brand); color: #fff;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 8px; border-radius: 3px;
+}
+
+.badge-cat {
+  position: absolute; top: 8px; right: 40px;
+  background: rgba(0,0,0,.55); color: #fff;
+  font-size: 10px; padding: 3px 8px; border-radius: 3px;
+}
+
+.btn-del {
   position: absolute; top: 8px; right: 8px;
-  background: var(--accent); color: var(--bg);
-  border-radius: 2px; padding: 2px 7px;
-  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 1px;
+  width: 30px; height: 30px;
+  border: none; border-radius: 50%;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  cursor: pointer; z-index: 2;
+  font-size: 13px;
 }
 
-.card-body { padding: 12px 14px; }
-.card-name {
-  font-size: 13px; font-weight: 500; margin-bottom: 4px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text);
-}
-.card-meta-row {
-  display: flex; align-items: center; justify-content: space-between; margin-top: 6px;
-}
-.card-size, .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.card-body { padding: 10px 12px 12px; }
 
-.empty { grid-column: 1/-1; padding: 80px 20px; text-align: center; }
-.empty-icon { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.3; }
-.empty h3 { font-family: 'Shippori Mincho', serif; font-size: 22px; margin-bottom: 8px; color: var(--text); }
-.empty p { font-size: 13px; color: var(--muted); line-height: 1.8; }
+.card-title {
+  font-size: 14px; font-weight: 600;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.card-desc {
+  font-size: 12px;
+  color: var(--text-sub);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 8px;
+  min-height: 2.9em;
+}
+
+.card-desc.empty { font-style: italic; opacity: .7; min-height: auto; }
+
+.card-price {
+  font-size: 16px; font-weight: 700;
+  color: var(--brand);
+  margin-bottom: 6px;
+}
+
+.card-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: var(--text-sub);
+  gap: 6px;
+}
+
+.card-seller {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 56px 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  margin: 8px;
+}
+.empty p { font-size: 14px; color: var(--text-sub); margin-top: 8px; line-height: 1.6; }
+
+.fab {
+  position: fixed; bottom: 76px; right: 18px; z-index: 150;
+  background: var(--brand); color: #fff;
+  border: none; border-radius: 28px;
+  padding: 14px 20px; font-size: 14px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(255,2,17,.35);
+}
+
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 180;
+  height: 56px; background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+}
+
+.nav-btn {
+  flex: 1; border: none; background: none;
+  font-family: inherit; font-size: 11px;
+  color: var(--text-sub); cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px;
+}
+.nav-btn span:first-child { font-size: 18px; }
+.nav-btn.active { color: var(--brand); font-weight: 600; }
+
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 300; opacity: 0; pointer-events: none; transition: .25s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 310;
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+  max-height: 92vh; overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform .3s ease;
+  padding: 8px 20px 28px;
+}
+.overlay.open .sheet { transform: translateY(0); }
+
+.sheet-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 8px auto 16px;
+}
+
+.sheet h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.sheet-sub { font-size: 13px; color: var(--text-sub); margin-bottom: 16px; }
+
+.btn-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 32px; height: 32px; border: none;
+  background: var(--bg); border-radius: 50%;
+  cursor: pointer; font-size: 18px; color: var(--text-sub);
+}
+
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  margin-bottom: 12px;
+}
+.dropzone:hover, .dropzone.drag-over { border-color: var(--brand); background: var(--brand-light); }
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+.preview-box {
+  display: none;
+  width: 100%;
+  max-height: 220px;
+  margin-bottom: 14px;
+  background: #f0f0f0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 8px;
+}
+.preview-box.show { display: flex; }
+
+.preview-box img {
+  max-width: 100%;
+  max-height: 200px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); margin-bottom: 5px; }
+.field input, .field textarea, .field select {
+  width: 100%; padding: 11px 12px;
+  border: 1px solid var(--border); border-radius: 4px;
+  font-size: 14px; font-family: inherit; outline: none;
+}
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--brand); }
+.field textarea { resize: vertical; min-height: 72px; }
+
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.progress { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 10px 0; display: none; }
+.progress.show { display: block; }
+.progress-bar { height: 100%; background: var(--brand); width: 0%; transition: width .3s; }
+
+.msg { font-size: 13px; min-height: 18px; margin-bottom: 10px; display: none; }
+.msg.show { display: block; }
+.msg.ok { color: #2e7d32; }
+.msg.err { color: var(--brand); }
+.msg.info { color: var(--text-sub); }
+
+.btn-primary {
+  width: 100%; padding: 14px;
+  background: var(--brand); color: #fff; border: none;
+  border-radius: 4px; font-size: 15px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+}
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.btn-primary:hover:not(:disabled) { background: var(--brand-dark); }
 
 .lightbox {
-  position: fixed; inset: 0; background: rgba(10,8,6,0.94); z-index: 1000;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(0,0,0,.92);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 16px;
+  opacity: 0; pointer-events: none; transition: .25s;
 }
-.lightbox.show { opacity: 1; pointer-events: all; }
-.lightbox-inner { max-width: 90vw; max-height: 90vh; }
-.lightbox img { max-width: 80vw; max-height: 80vh; object-fit: contain; border-radius: 4px; display: block; }
-.lightbox-info {
-  padding: 14px 4px 0;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.lightbox-name { font-family: 'Shippori Mincho', serif; font-size: 16px; color: var(--text); }
-.lightbox-seller { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-.lightbox-close {
-  position: fixed; top: 20px; right: 24px; font-size: 24px;
-  color: var(--muted); cursor: pointer; transition: color 0.2s;
-}
-.lightbox-close:hover { color: var(--text); }
-.btn-dl-lb {
-  padding: 8px 18px; background: transparent;
-  border: 1px solid var(--border2); border-radius: 3px;
-  color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px;
-  cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block;
-}
-.btn-dl-lb:hover { border-color: var(--accent); color: var(--accent); }
+.lightbox.open { opacity: 1; pointer-events: all; }
 
-@media (max-width: 800px) {
-  .page-layout { grid-template-columns: 1fr; }
-  .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
-  .hero { flex-direction: column; }
-  nav { display: none; }
-  header { padding: 0 16px; }
+.lightbox img {
+  max-width: 100%; max-height: 55vh;
+  object-fit: contain; border-radius: var(--radius);
 }
+.lb-nav {
+  display: flex; gap: 12px; margin-top: 10px; align-items: center; justify-content: center;
+}
+.lb-nav button {
+  background: rgba(255,255,255,.2); border: none; color: #fff;
+  width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer;
+}
+.lb-dots { color: rgba(255,255,255,.8); font-size: 13px; }
+.preview-thumb {
+  width: 72px; height: 72px; object-fit: cover; border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.card-photos {
+  position: absolute; bottom: 8px; left: 8px;
+  background: rgba(0,0,0,.55); color: #fff;
+  font-size: 10px; padding: 3px 8px; border-radius: 10px;
+}
+
+.lb-panel {
+  color: #fff; max-width: 480px; width: 100%;
+  margin-top: 16px; text-align: left;
+}
+.lb-panel h3 { font-size: 18px; margin-bottom: 6px; }
+.lb-panel .lb-desc { font-size: 14px; opacity: .85; line-height: 1.6; margin-bottom: 8px; }
+.lb-panel .lb-meta { font-size: 13px; opacity: .65; margin-bottom: 14px; }
+.lb-price { font-size: 22px; font-weight: 700; color: #ff6b6b; margin-bottom: 8px; }
+
+.lb-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.lb-actions a, .lb-actions button {
+  padding: 10px 18px; border-radius: 20px;
+  font-size: 13px; font-family: inherit; cursor: pointer;
+}
+.lb-dl { background: #fff; color: var(--text); text-decoration: none; border: none; }
+.lb-del { background: transparent; color: #ff8a8a; border: 1px solid #ff8a8a; }
+
+.lb-close {
+  position: absolute; top: 14px; right: 14px;
+  background: rgba(255,255,255,.15); border: none;
+  color: #fff; width: 40px; height: 40px; border-radius: 50%;
+  font-size: 20px; cursor: pointer;
+}
+
+.toast {
+  position: fixed; bottom: 68px; left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: rgba(34,34,34,.92); color: #fff;
+  padding: 11px 18px; border-radius: 22px;
+  font-size: 13px; z-index: 500; opacity: 0; transition: .3s;
+  pointer-events: none; max-width: 90vw; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-<header>
+<header class="header">
   <a class="logo" href="#">
-    隠す市場
-    <span class="logo-badge">MARKET</span>
+    <span class="logo-mark">JM</span>
+    <span class="logo-name">Jibun Market</span>
   </a>
-  <nav>
-    <a class="nav-link active" href="#">สินค้าทั้งหมด</a>
-    <a class="nav-link" href="#">ของฉัน</a>
-  </nav>
-  <div class="header-right">
-    <div class="user-chip">
-      <div class="user-dot"></div>
-      <span id="user-name-header">กำลังโหลด...</span>
-    </div>
-    <button class="btn-sm btn-ghost" onclick="logout()">ออกจากระบบ</button>
+  <input type="search" class="search" id="search-input" placeholder="ค้นหาสินค้า รายละเอียด หรือผู้ขาย...">
+  <div class="header-actions">
+    <span class="user-label" id="user-name-header">—</span>
+    <button class="btn-ghost" type="button" onclick="logout()">ออกจากระบบ</button>
   </div>
 </header>
 
-<div class="hero">
-  <div class="hero-text">
-    <h1>ตลาดสินค้า<span>ออนไลน์</span></h1>
-    <p>อัปโหลดรูปสินค้า ระบบ resize และแปะลายน้ำอัตโนมัติผ่าน AWS Lambda</p>
+<div class="toolbar">
+  <div class="toolbar-row">
+    <div>
+      <h1>สินค้าทั้งหมด</h1>
+      <span class="count" id="image-count">กำลังโหลด...</span>
+    </div>
+    <button class="btn-icon" type="button" onclick="refreshImages()" title="รีเฟรช">↻</button>
   </div>
-  <div class="hero-stats">
-    <div class="stat">
-      <div class="stat-n" id="stat-count">—</div>
-      <div class="stat-l">สินค้า</div>
-    </div>
-    <div class="stat">
-      <div class="stat-n">λ</div>
-      <div class="stat-l">Lambda</div>
-    </div>
+  <div class="filters">
+    <button class="chip active" type="button" id="chip-all" data-cat="">ทั้งหมด</button>
+    <button class="chip" type="button" data-cat="แฟชั่น">แฟชั่น</button>
+    <button class="chip" type="button" data-cat="อิเล็กทรอนิกส์">อิเล็กทรอนิกส์</button>
+    <button class="chip" type="button" data-cat="ของสะสม">ของสะสม</button>
+    <button class="chip" type="button" data-cat="อื่นๆ">อื่นๆ</button>
+    <select class="sort-select" id="sort-select" aria-label="เรียงลำดับ">
+      <option value="newest">ใหม่ล่าสุด</option>
+      <option value="price-asc">ราคา: ต่ำ → สูง</option>
+      <option value="price-desc">ราคา: สูง → ต่ำ</option>
+    </select>
   </div>
 </div>
 
-<div class="page-layout">
+<main class="main">
+  <div class="grid" id="product-grid"></div>
+</main>
 
-  <div class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">ลงสินค้าใหม่</div>
-      <div class="upload-panel">
-        <div class="upload-zone" id="upload-zone">
-          <input type="file" id="file-input" accept="image/*">
-          <span class="upload-zone-icon">📷</span>
-          <strong>เลือกรูปสินค้า</strong>
-          <p>ลากมาวางหรือคลิก</p>
-        </div>
+<button class="fab" type="button" onclick="openUploadSheet()">＋ ลงขายสินค้า</button>
 
-        <div class="thumb-preview" id="thumb-preview">
-          <span>ยังไม่มีรูป</span>
-        </div>
+<nav class="bottom-nav">
+  <button class="nav-btn active" type="button" id="nav-home" onclick="goHome()"><span>🏠</span><span>หน้าแรก</span></button>
+  <button class="nav-btn" type="button" onclick="openUploadSheet()"><span>📷</span><span>ลงขาย</span></button>
+  <button class="nav-btn" type="button" onclick="location.href='mypage.html'"><span>👤</span><span>ของฉัน</span></button>
+</nav>
 
-        <div class="field-sm">
-          <label>ชื่อสินค้า</label>
-          <input type="text" id="product-name" placeholder="เช่น กระเป๋าหนังแท้">
-        </div>
+<div class="overlay" id="upload-overlay" onclick="overlayClose(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <button class="btn-close" type="button" onclick="closeUploadSheet()" aria-label="ปิด">×</button>
+    <h2>ลงขายสินค้า</h2>
+    <p class="sheet-sub">กรอกรายละเอียดแล้วอัปโหลดรูป ระบบจะแปะลายน้ำ Jibun Market ให้อัตโนมัติ</p>
 
-        <div class="field-sm">
-          <label>คำอธิบาย</label>
-          <textarea id="product-desc" rows="2" placeholder="รายละเอียดสินค้า..."></textarea>
-        </div>
+    <div class="dropzone" id="upload-zone">
+      <input type="file" id="file-input" accept="image/*" multiple>
+      <div style="font-size:32px;margin-bottom:6px">📷</div>
+      <strong>เลือกรูปสินค้า (หลายรูปได้)</strong>
+      <p style="font-size:13px;color:var(--text-sub);margin-top:4px">ถ่ายหลายมุมแล้วเลือกพร้อมกัน</p>
+    </div>
 
-        <div class="progress-bar-wrap" id="progress-wrap">
-          <div class="progress-bar-fill" id="progress-fill"></div>
-        </div>
-        <div class="upload-msg" id="upload-msg"></div>
+    <div class="preview-box" id="preview-box">
+      <div id="preview-grid" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%"></div>
+    </div>
 
-        <button class="btn-full" id="btn-upload" disabled style="margin-top:10px" onclick="doUpload()">
-          ⬆ ลงประกาศสินค้า
-        </button>
+    <div class="field">
+      <label>ชื่อสินค้า *</label>
+      <input type="text" id="product-title" placeholder="เช่น กระเป๋าหนังแท้ สภาพดี">
+    </div>
+    <div class="field">
+      <label>รายละเอียดสินค้า *</label>
+      <textarea id="product-desc" placeholder="บอกสภาพ ขนาด จุดเด่น หรือข้อมูลที่ผู้ซื้อควรรู้"></textarea>
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label>ราคา (บาท)</label>
+        <input type="number" id="product-price" min="0" step="1" placeholder="เช่น 350">
+      </div>
+      <div class="field">
+        <label>หมวดหมู่</label>
+        <select id="product-category">
+          <option value="แฟชั่น">แฟชั่น</option>
+          <option value="อิเล็กทรอนิกส์">อิเล็กทรอนิกส์</option>
+          <option value="ของสะสม">ของสะสม</option>
+          <option value="อื่นๆ" selected>อื่นๆ</option>
+        </select>
       </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-label">หมวดหมู่</div>
-      <div class="category-item active" onclick="setCategory(this)">
-        <span>🛍 ทั้งหมด</span>
-        <span class="cat-count" id="cat-all">0</span>
-      </div>
-      <div class="category-item" onclick="setCategory(this)"><span>👗 แฟชั่น</span><span class="cat-count">—</span></div>
-      <div class="category-item" onclick="setCategory(this)"><span>📱 อิเล็กทรอนิกส์</span><span class="cat-count">—</span></div>
-      <div class="category-item" onclick="setCategory(this)"><span>🎌 ของสะสม</span><span class="cat-count">—</span></div>
-      <div class="category-item" onclick="setCategory(this)"><span>📦 อื่นๆ</span><span class="cat-count">—</span></div>
-    </div>
+    <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress-fill"></div></div>
+    <div class="msg" id="upload-msg"></div>
+    <button class="btn-primary" id="btn-upload" type="button" disabled onclick="doUpload()">ลงขายสินค้า</button>
   </div>
-
-  <div class="main-content">
-    <div class="content-header">
-      <h2 class="content-title">สินค้าทั้งหมด</h2>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="content-meta" id="image-count">กำลังโหลด...</span>
-        <button class="btn-sm btn-ghost" onclick="loadImages()" style="font-size:14px">↻</button>
-      </div>
-    </div>
-    <div class="product-grid" id="product-grid"></div>
-  </div>
-
 </div>
 
 <div class="lightbox" id="lightbox">
-  <span class="lightbox-close" onclick="closeLightbox()">✕</span>
-  <div class="lightbox-inner">
-    <img id="lb-img" src="" alt="">
-    <div class="lightbox-info">
-      <div>
-        <div class="lightbox-name" id="lb-name"></div>
-        <div class="lightbox-seller" id="lb-seller"></div>
-      </div>
-      <a class="btn-dl-lb" id="lb-dl" href="#" target="_blank">⬇ ดาวน์โหลด</a>
+  <button class="lb-close" type="button" onclick="closeLightbox()" aria-label="ปิด">×</button>
+  <img id="lb-img" src="" alt="">
+  <div class="lb-panel">
+    <p class="lb-price" id="lb-price" style="display:none"></p>
+    <h3 id="lb-title"></h3>
+    <p class="lb-desc" id="lb-desc"></p>
+    <p class="lb-meta" id="lb-meta"></p>
+    <div class="lb-actions">
+      <a class="lb-dl" id="lb-dl" href="#" target="_blank" rel="noopener">ดาวน์โหลดรูป</a>
+      <button class="lb-dl" id="lb-buy" type="button" style="display:none;background:var(--brand);color:#fff">สั่งซื้อ</button>
+      <button class="lb-del" id="lb-delete" type="button" style="display:none">ลบสินค้า</button>
     </div>
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
 const API = 'https://l5sw03zchf.execute-api.ap-northeast-1.amazonaws.com';
-let currentUser = '';
-let allImages   = [];
-let selectedFile = null;
-
-// Auth check
 const token = localStorage.getItem('accessToken');
 if (!token) window.location.href = 'auth.html';
 
-// ── User ────────────────────────────────────────
+let currentUserEmail = (localStorage.getItem('userEmail') || '').toLowerCase();
+let allImages = [];
+let filteredProducts = [];
+let selectedFiles = [];
+let activeCategory = '';
+let lightboxProduct = null;
+let lightboxIndex = 0;
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str ?? '';
+  return d.innerHTML;
+}
+
+function formatPrice(p) {
+  if (!p || p === '0') return '';
+  const n = Number(p);
+  if (Number.isNaN(n)) return '';
+  return '฿' + n.toLocaleString('th-TH');
+}
+
 async function loadUser() {
-  try {
-    // decode JWT payload (ไม่ต้อง verify ฝั่ง client)
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-    currentUser = payload.nickname || payload['cognito:username'] || payload.email || 'Seller';
-  } catch { currentUser = 'Seller'; }
-  document.getElementById('user-name-header').textContent = currentUser;
+  if (!currentUserEmail) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      currentUserEmail = (payload.email || payload['cognito:username'] || '').toLowerCase();
+      if (currentUserEmail) localStorage.setItem('userEmail', currentUserEmail);
+    } catch { /* ignore */ }
+  }
+  document.getElementById('user-name-header').textContent = currentUserEmail || 'บัญชี';
+}
+
+function isOwner(item) {
+  const owner = (item.owner || item.seller || '').toLowerCase();
+  return owner === currentUserEmail;
 }
 
 function logout() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
+  localStorage.removeItem('userEmail');
   window.location.href = 'auth.html';
 }
 
-// ── File select ─────────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function openUploadSheet() {
+  document.getElementById('upload-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeUploadSheet() {
+  document.getElementById('upload-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function overlayClose(e) {
+  if (e.target.id === 'upload-overlay') closeUploadSheet();
+}
+
 const uploadZone = document.getElementById('upload-zone');
-const fileInput  = document.getElementById('file-input');
+const fileInput = document.getElementById('file-input');
 
 uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
 uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
 uploadZone.addEventListener('drop', e => {
-  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
   const f = e.dataTransfer.files[0];
-  if (f && f.type.startsWith('image/')) selectFile(f);
+  const list = e.dataTransfer.files;
+  if (list?.length) selectFiles(list);
 });
-fileInput.addEventListener('change', e => { if (e.target.files[0]) selectFile(e.target.files[0]); });
+fileInput.addEventListener('change', e => { if (e.target.files.length) selectFiles(e.target.files); });
 
-function selectFile(file) {
-  selectedFile = file;
-  const reader = new FileReader();
-  reader.onload = e => { document.getElementById('thumb-preview').innerHTML = `<img src="${e.target.result}">`; };
-  reader.readAsDataURL(file);
+function selectFiles(fileList) {
+  selectedFiles = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+  if (!selectedFiles.length) return;
+  const grid = document.getElementById('preview-grid');
+  const box = document.getElementById('preview-box');
+  grid.innerHTML = '';
+  selectedFiles.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = 'preview-thumb';
+      img.alt = 'ตัวอย่าง';
+      grid.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+  box.classList.add('show');
+  uploadZone.style.display = 'none';
   document.getElementById('btn-upload').disabled = false;
-  setMsg('', '');
+  setMsg(`เลือก ${selectedFiles.length} รูป`, 'info');
 }
 
-// ── Upload ──────────────────────────────────────
+function resetUploadForm() {
+  selectedFiles = [];
+  document.getElementById('preview-box').classList.remove('show');
+  document.getElementById('preview-grid').innerHTML = '';
+  document.getElementById('upload-zone').style.display = '';
+  document.getElementById('product-title').value = '';
+  document.getElementById('product-desc').value = '';
+  document.getElementById('product-price').value = '';
+  document.getElementById('product-category').value = 'อื่นๆ';
+  document.getElementById('btn-upload').disabled = true;
+  setProgress(0);
+  document.getElementById('progress-wrap').classList.remove('show');
+}
+
 async function doUpload() {
-  if (!selectedFile) return;
-  const filename = `${Date.now()}_${selectedFile.name.replace(/\s/g,'_')}`;
+  if (!selectedFiles.length) {
+    setMsg('กรุณาเลือกรูปสินค้าก่อน', 'err');
+    showToast('กรุณาเลือกรูปสินค้าก่อน');
+    return;
+  }
+
+  const title = document.getElementById('product-title').value.trim();
+  const description = document.getElementById('product-desc').value.trim();
+  const price = document.getElementById('product-price').value.trim();
+  const category = document.getElementById('product-category').value;
+
+  if (!title) {
+    setMsg('กรุณากรอกชื่อสินค้า', 'err');
+    showToast('กรุณากรอกชื่อสินค้า');
+    return;
+  }
+  if (!description) {
+    setMsg('กรุณากรอกรายละเอียดสินค้า', 'err');
+    showToast('กรุณากรอกรายละเอียดสินค้า');
+    return;
+  }
+
+  const productId = newProductId();
+  const stamp = Date.now();
+  const files = selectedFiles.map((f, i) => ({
+    filename: `${stamp}_${i}_${f.name.replace(/[^\w.\-]/g, '_')}`,
+    contentType: f.type || 'image/jpeg',
+  }));
 
   document.getElementById('btn-upload').disabled = true;
   document.getElementById('progress-wrap').classList.add('show');
   setProgress(10);
+  setMsg('กำลังขอลิงก์อัปโหลด...', 'info');
 
   try {
-    // 1. ขอ Presigned URL จาก API
     const res = await fetch(`${API}/upload`, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${token}` 
-      },
-      body: JSON.stringify({ filename, contentType: selectedFile.type })
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ productId, files, title, description, price, category }),
     });
 
     if (res.status === 401) { logout(); return; }
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || 'ขอ Upload URL ไม่สำเร็จ');
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error(`เซิร์ฟเตอร์ตอบกลับไม่ถูกต้อง (${res.status}) — ลอง sam deploy อีกครั้ง`);
     }
 
-    const { uploadUrl } = await res.json();
-    setProgress(40);
+    if (!res.ok) {
+      throw new Error(data.error || data.message || `ขอลิงก์อัปโหลดไม่สำเร็จ (${res.status})`);
+    }
 
-    // 2. อัปโหลดไฟล์ตรงไปที่ S3 พร้อมส่ง Metadata (สำคัญมากตรง x-amz-meta-username)
-    const put = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: { 
-        'Content-Type': selectedFile.type,
-        // ต้องส่งชื่อ currentUser ไปให้ตรงกับที่ API กำหนดไว้ใน Presigned URL
-        'x-amz-meta-username': currentUser 
-      },
-      body: selectedFile
-    });
+    const { productId: pid, items } = normalizeUploadResponse(data, productId);
+    if (!items.length) {
+      throw new Error('API ไม่ส่งลิงก์อัปโหลด — กรุณา deploy เวอร์ชันล่าสุด (sam build && sam deploy)');
+    }
 
-    if (!put.ok) throw new Error('อัปโหลดไฟล์ไม่สำเร็จ (S3 Rejected)');
-    setProgress(70);
+    const processedKeys = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const file = selectedFiles[i];
+      if (!item.uploadUrl || !file) {
+        throw new Error(`ข้อมูลอัปโหลดรูปที่ ${i + 1} ไม่ครบ`);
+      }
+      const headers = { 'Content-Type': file.type || 'image/jpeg' };
+      const meta = item.metaHeaders || {};
+      Object.keys(meta).forEach(k => { headers[k] = meta[k]; });
+      if (!headers['x-amz-meta-username'] && data.sellerName) {
+        headers['x-amz-meta-username'] = data.sellerName;
+      }
 
-    // 3. รอ Lambda ประมวลผลสักครู่
-    setMsg('⏳ ระบบกำลังประมวลผลและแปะลายน้ำ...', 'info');
-    await delay(4000); 
+      const put = await fetch(item.uploadUrl, { method: 'PUT', headers, body: file });
+      if (!put.ok) {
+        const detail = await put.text().catch(() => '');
+        throw new Error(`อัปโหลดรูปที่ ${i + 1} ไม่สำเร็จ (${put.status})${detail ? ': ' + detail.slice(0, 80) : ''}`);
+      }
+      if (item.processedKey) processedKeys.push(item.processedKey);
+      setProgress(20 + Math.round((i + 1) / items.length * 40));
+    }
 
+    setMsg('กำลังแปะลายน้ำ Jibun Market...', 'info');
+    allImages = await waitForUploadComplete(pid, processedKeys);
+    applyFilters();
+    closeUploadSheet();
+    resetUploadForm();
     setProgress(100);
-    await delay(300);
-    setProgress(0);
-    document.getElementById('progress-wrap').classList.remove('show');
-    setMsg('✓ ลงสินค้าสำเร็จแล้ว!', 'success');
-    
-    // โหลดรายการรูปภาพใหม่
-    loadImages();
-
-    // Reset Form
-    selectedFile = null;
-    document.getElementById('thumb-preview').innerHTML = '<span>ยังไม่มีรูป</span>';
-    document.getElementById('product-name').value = '';
-    document.getElementById('product-desc').value = '';
-
+    setMsg('ลงขายสำเร็จ!', 'ok');
+    showToast('ลงขายสินค้าเรียบร้อย');
   } catch (err) {
-    console.error('Upload Error:', err);
-    setProgress(0);
-    document.getElementById('progress-wrap').classList.remove('show');
-    setMsg(`✕ ${err.message}`, 'error');
+    console.error('Upload error:', err);
+    setMsg(err.message, 'err');
+    showToast(err.message);
   }
   document.getElementById('btn-upload').disabled = false;
 }
 
-// ── Gallery ─────────────────────────────────────
+async function fetchImageList() {
+  const res = await fetch(`${API}/images`, { cache: 'no-store' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || `โหลดไม่สำเร็จ (${res.status})`);
+  }
+  return (await res.json()).images || [];
+}
+
+function groupProducts(images) {
+  const map = new Map();
+  for (const img of images) {
+    const pid = img.productId || img.key;
+    if (!map.has(pid)) {
+      map.set(pid, { productId: pid, images: [], ...img });
+    }
+    const p = map.get(pid);
+    p.images.push(img);
+    if (new Date(img.lastModified) > new Date(p.lastModified)) p.lastModified = img.lastModified;
+  }
+  return [...map.values()].map(p => {
+    p.images.sort((a, b) => a.imageIndex - b.imageIndex);
+    return p;
+  });
+}
+
 async function loadImages() {
   document.getElementById('image-count').textContent = 'กำลังโหลด...';
   try {
-    const res  = await fetch(`${API}/images`);
-    const data = await res.json();
-    allImages  = data.images || [];
-
-    document.getElementById('stat-count').textContent = allImages.length;
-    document.getElementById('cat-all').textContent    = allImages.length;
-    document.getElementById('image-count').textContent = `${allImages.length} รายการ`;
-    renderGrid(allImages);
+    allImages = await fetchImageList();
+    applyFilters();
   } catch (err) {
     document.getElementById('image-count').textContent = 'โหลดไม่ได้';
     document.getElementById('product-grid').innerHTML = `
       <div class="empty">
-        <span class="empty-icon">⚠️</span>
-        <h3>เชื่อมต่อไม่ได้</h3>
-        <p>${err.message}</p>
+        <div style="font-size:40px">⚠️</div>
+        <h2 style="margin-top:12px;font-size:16px">เชื่อมต่อไม่ได้</h2>
+        <p>${escapeHtml(err.message)}</p>
       </div>`;
   }
 }
 
-function renderGrid(images) {
+async function refreshImages() {
+  await loadImages();
+  showToast('อัปเดตรายการแล้ว');
+}
+
+function goHome() {
+  activeCategory = '';
+  document.getElementById('search-input').value = '';
+  document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.remove('active'));
+  document.getElementById('chip-all').classList.add('active');
+  applyFilters();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  document.querySelectorAll('.chip[data-cat]').forEach(c => {
+    c.classList.toggle('active', c.dataset.cat === cat);
+  });
+  document.getElementById('chip-all').classList.toggle('active', cat === '');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const sort = document.getElementById('sort-select').value;
+
+  let list = groupProducts(allImages);
+
+  if (activeCategory) {
+    list = list.filter(p => (p.category || 'อื่นๆ') === activeCategory);
+  }
+  if (q) {
+    list = list.filter(p => {
+      const hay = [p.title, p.description, p.seller, p.category, p.price].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+
+  if (sort === 'price-asc') {
+    list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+  } else if (sort === 'price-desc') {
+    list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+  } else {
+    list.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+  }
+
+  filteredProducts = list;
+  document.getElementById('image-count').textContent = `${filteredProducts.length} รายการ`;
+  renderGrid(filteredProducts);
+}
+
+document.getElementById('search-input').addEventListener('input', applyFilters);
+document.getElementById('sort-select').addEventListener('change', applyFilters);
+document.getElementById('chip-all').addEventListener('click', () => setCategory(''));
+document.querySelectorAll('.chip[data-cat]').forEach(chip => {
+  if (!chip.id) chip.addEventListener('click', () => setCategory(chip.dataset.cat));
+});
+
+function renderGrid(products) {
   const grid = document.getElementById('product-grid');
-  if (!images.length) {
+  if (!products.length) {
     grid.innerHTML = `
       <div class="empty">
-        <span class="empty-icon">🏪</span>
-        <h3>ยังไม่มีสินค้า</h3>
-        <p>เป็นคนแรกที่ลงสินค้าในตลาดนี้<br>อัปโหลดรูปจากแผงด้านซ้ายได้เลย</p>
+        <div style="font-size:40px">🛍️</div>
+        <h2 style="margin-top:12px;font-size:16px">ยังไม่มีสินค้า</h2>
+        <p>กด <strong>ลงขายสินค้า</strong> เพื่อลงประกาศชิ้นแรกของคุณ</p>
       </div>`;
     return;
   }
-  grid.innerHTML = '';
+
   const now = Date.now();
-  images.forEach((img, i) => {
-    const sizeKB  = (img.size / 1024).toFixed(0);
-    const date    = new Date(img.lastModified);
-    const isNew   = (now - date.getTime()) < 86400000;
+  grid.innerHTML = products.map((p, i) => {
+    const cover = p.images[0];
+    const title = p.title || 'สินค้า';
+    const desc = p.description || '';
+    const seller = p.seller || 'ผู้ขาย';
+    const priceStr = formatPrice(p.price);
+    const date = new Date(p.lastModified);
+    const isNew = (now - date.getTime()) < 86400000;
     const dateStr = date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
-    const name    = img.filename.replace(/^\d+_/, '').replace(/\.[^.]+$/, '');
+    const cat = p.category || 'อื่นๆ';
+    const own = isOwner(p);
+    const photoCount = p.images.length;
 
-    const card = document.createElement('div');
-    card.className = 'product-card';
-    card.style.animationDelay = `${i * 0.05}s`;
-    card.innerHTML = `
-      <div class="card-img-wrap">
-        <img src="${img.url}" alt="${name}" loading="lazy">
-        ${isNew ? '<div class="card-new-badge">NEW</div>' : ''}
-        <div class="card-seller-badge">© ${currentUser}</div>
-      </div>
-      <div class="card-body">
-        <div class="card-name">${name}</div>
-        <div class="card-meta-row">
-          <span class="card-size">${sizeKB} KB</span>
-          <span class="card-date">${dateStr}</span>
+    return `
+      <article class="card" style="animation-delay:${i * 0.03}s" data-product-id="${escapeHtml(p.productId)}">
+        <div class="card-img">
+          <img src="${escapeHtml(cover.url)}" alt="${escapeHtml(title)}" loading="lazy">
+          ${isNew ? '<span class="badge-new">ใหม่</span>' : ''}
+          <span class="badge-cat">${escapeHtml(cat)}</span>
+          ${photoCount > 1 ? `<span class="card-photos">📷 ${photoCount} รูป</span>` : ''}
+          ${own ? `<button class="btn-del" type="button" data-action="delete" data-product-id="${escapeHtml(p.productId)}" aria-label="ลบ">🗑</button>` : ''}
         </div>
-      </div>`;
-    card.addEventListener('click', () => openLightbox(img, name));
-    grid.appendChild(card);
-  });
+        <div class="card-body">
+          ${priceStr ? `<div class="card-price">${escapeHtml(priceStr)}</div>` : ''}
+          <div class="card-title">${escapeHtml(title)}</div>
+          <div class="card-desc${desc ? '' : ' empty'}">${desc ? escapeHtml(desc) : 'ไม่มีรายละเอียดเพิ่มเติม'}</div>
+          <div class="card-foot">
+            <span class="card-seller">ขายโดย ${escapeHtml(seller)}</span>
+            <span>${dateStr}</span>
+          </div>
+        </div>
+      </article>`;
+  }).join('');
 }
 
-function setCategory(el) {
-  document.querySelectorAll('.category-item').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  renderGrid(allImages);
+document.getElementById('product-grid').addEventListener('click', e => {
+  const delBtn = e.target.closest('[data-action="delete"]');
+  if (delBtn) {
+    e.stopPropagation();
+    deleteProduct(delBtn.dataset.productId);
+    return;
+  }
+  const card = e.target.closest('.card');
+  if (!card) return;
+  const product = filteredProducts.find(x => x.productId === card.dataset.productId);
+  if (product) openLightbox(product, 0);
+});
+
+async function deleteProduct(productId) {
+  if (!confirm('ต้องการลบสินค้านี้ทั้งหมดใช่หรือไม่?')) return;
+  try {
+    const res = await fetch(`${API}/images/delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ productId }),
+    });
+    const data = await res.json();
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(data.error || 'ลบไม่สำเร็จ');
+    allImages = allImages.filter(img => img.productId !== productId);
+    applyFilters();
+    closeLightbox();
+    showToast('ลบสินค้าแล้ว');
+  } catch (err) {
+    showToast(err.message);
+  }
 }
 
-// ── Lightbox ────────────────────────────────────
-function openLightbox(img, name) {
+async function buyProduct(product) {
+  if (!confirm(`ยืนยันสั่งซื้อ "${product.title}" ใช่หรือไม่?`)) return;
+  try {
+    const res = await fetch(`${API}/orders/buy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ productId: product.productId }),
+    });
+    const data = await res.json();
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(data.error || 'สั่งซื้อไม่สำเร็จ');
+    showToast(data.message || 'สั่งซื้อสำเร็จ ดูได้ที่หน้าของฉัน');
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+function updateLightboxView() {
+  if (!lightboxProduct) return;
+  const img = lightboxProduct.images[lightboxIndex];
   document.getElementById('lb-img').src = img.url;
-  document.getElementById('lb-name').textContent   = name;
-  document.getElementById('lb-seller').textContent = `© ${currentUser}`;
   document.getElementById('lb-dl').href = img.url;
-  document.getElementById('lightbox').classList.add('show');
+  const dots = document.getElementById('lb-dots');
+  if (dots) dots.textContent = `${lightboxIndex + 1} / ${lightboxProduct.images.length}`;
+}
+
+function openLightbox(product, index = 0) {
+  lightboxProduct = product;
+  lightboxIndex = index;
+  document.getElementById('lb-title').textContent = product.title || 'สินค้า';
+  document.getElementById('lb-desc').textContent = product.description || 'ไม่มีรายละเอียดเพิ่มเติม';
+  const priceEl = document.getElementById('lb-price');
+  const p = formatPrice(product.price);
+  priceEl.style.display = p ? 'block' : 'none';
+  if (p) priceEl.textContent = p;
+  document.getElementById('lb-meta').textContent =
+    `หมวด ${product.category || 'อื่นๆ'} · ขายโดย ${product.seller || 'ผู้ขาย'} · ${new Date(product.lastModified).toLocaleString('th-TH')}`;
+
+  const own = isOwner(product);
+  document.getElementById('lb-delete').style.display = own ? 'inline-block' : 'none';
+  document.getElementById('lb-delete').onclick = () => deleteProduct(product.productId);
+  const buyBtn = document.getElementById('lb-buy');
+  buyBtn.style.display = own ? 'none' : 'inline-block';
+  buyBtn.onclick = () => buyProduct(product);
+
+  let nav = document.getElementById('lb-nav');
+  if (!nav) {
+    nav = document.createElement('div');
+    nav.id = 'lb-nav';
+    nav.className = 'lb-nav';
+    nav.innerHTML = `<button type="button" id="lb-prev">‹</button><span class="lb-dots" id="lb-dots"></span><button type="button" id="lb-next">›</button>`;
+    document.querySelector('.lightbox').insertBefore(nav, document.querySelector('.lb-panel'));
+    document.getElementById('lb-prev').onclick = () => {
+      lightboxIndex = (lightboxIndex - 1 + lightboxProduct.images.length) % lightboxProduct.images.length;
+      updateLightboxView();
+    };
+    document.getElementById('lb-next').onclick = () => {
+      lightboxIndex = (lightboxIndex + 1) % lightboxProduct.images.length;
+      updateLightboxView();
+    };
+  }
+  nav.style.display = product.images.length > 1 ? 'flex' : 'none';
+  updateLightboxView();
+  document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
 function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('show');
+  document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow = '';
 }
 
 document.getElementById('lightbox').addEventListener('click', e => {
-  if (e.target === document.getElementById('lightbox')) closeLightbox();
+  if (e.target.id === 'lightbox') closeLightbox();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeLightbox(); closeUploadSheet(); }
+});
 
-// ── Helpers ─────────────────────────────────────
-function setProgress(pct) {
-  const wrap = document.getElementById('progress-wrap');
-  const fill = document.getElementById('progress-fill');
-  if (pct > 0) wrap.classList.add('show');
-  fill.style.width = pct + '%';
-}
+function setProgress(pct) { document.getElementById('progress-fill').style.width = pct + '%'; }
 function setMsg(msg, type) {
   const el = document.getElementById('upload-msg');
   el.textContent = msg;
-  el.className = `upload-msg${msg ? ' show' : ''}${type ? ' ' + type : ''}`;
+  el.className = 'msg' + (msg ? ' show' : '') + (type ? ' ' + type : '');
 }
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// Init
+function newProductId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+}
+
+function normalizeUploadResponse(data, fallbackProductId) {
+  if (Array.isArray(data.uploads) && data.uploads.length) {
+    return {
+      productId: data.productId || fallbackProductId,
+      items: data.uploads,
+    };
+  }
+  if (data.uploadUrl) {
+    return {
+      productId: fallbackProductId,
+      items: [{
+        uploadUrl: data.uploadUrl,
+        processedKey: data.processedKey,
+        metaHeaders: data.metaHeaders || {},
+      }],
+    };
+  }
+  return { productId: fallbackProductId, items: [] };
+}
+
+async function waitForUploadComplete(productId, processedKeys, maxAttempts = 30, intervalMs = 2000) {
+  const keys = processedKeys.filter(Boolean);
+  for (let i = 0; i < maxAttempts; i++) {
+    const images = await fetchImageList();
+    let ready = false;
+    if (productId && images.some(img => img.productId === productId)) {
+      const count = images.filter(img => img.productId === productId).length;
+      ready = count >= keys.length;
+    } else if (keys.length) {
+      ready = keys.every(k => images.some(img => img.key === k));
+    }
+    if (ready) return images;
+    setMsg(`รอระบบประมวลผล... (${i + 1}/${maxAttempts})`, 'info');
+    setProgress(55 + Math.min(40, (i + 1) * 2));
+    await delay(intervalMs);
+  }
+  throw new Error('ประมวลผลไม่ทันเวลา กดรีเฟรชเพื่อดูรายการ');
+}
+
 loadUser();
 loadImages();
+if (location.hash === '#sell') openUploadSheet();
 </script>
 </body>
 </html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jibun Market — หน้าของฉัน</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#ff0211;--brand-dark:#e6000f;--brand-light:#fff0f0;--bg:#f5f5f5;--surface:#fff;--text:#222;--text-sub:#888;--border:#e8e8e8;--radius:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans Thai',sans-serif;background:var(--bg);color:var(--text);padding-bottom:64px}
+.header{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.header a{color:var(--text);text-decoration:none;font-size:14px}
+.header h1{font-size:17px;font-weight:700;flex:1}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto}
+.tab{padding:10px 16px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-family:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.tab.active{background:var(--brand-light);border-color:var(--brand);color:var(--brand);font-weight:600}
+.panel{display:none;background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.panel.active{display:block}
+.avatar-wrap{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;background:var(--bg);border:2px solid var(--border)}
+.avatar-ph{display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--text-sub)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:5px}
+.field input,.field textarea{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:14px}
+.field textarea{min-height:72px;resize:vertical}
+.btn{padding:12px 18px;background:var(--brand);color:#fff;border:none;border-radius:4px;font-family:inherit;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--brand-dark)}
+.btn-outline{background:var(--surface);color:var(--brand);border:1px solid var(--brand);margin-left:8px}
+.order{padding:14px 0;border-bottom:1px solid var(--border)}
+.order:last-child{border-bottom:none}
+.order h3{font-size:15px;margin-bottom:4px}
+.order p{font-size:13px;color:var(--text-sub);line-height:1.5}
+.status{display:inline-block;margin-top:6px;padding:3px 10px;background:var(--brand-light);color:var(--brand);border-radius:12px;font-size:11px;font-weight:600}
+.empty{text-align:center;padding:32px;color:var(--text-sub);font-size:14px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:56px;background:var(--surface);border-top:1px solid var(--border);display:flex}
+.nav-btn{flex:1;border:none;background:none;font-family:inherit;font-size:11px;color:var(--text-sub);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.nav-btn span:first-child{font-size:18px}
+.nav-btn.active{color:var(--brand);font-weight:600}
+.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%);background:rgba(34,34,34,.9);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;opacity:0;transition:.3s;z-index:200}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header class="header">
+  <a href="index.html">← กลับ</a>
+  <h1>หน้าของฉัน</h1>
+</header>
+<div class="wrap">
+  <p style="font-size:13px;color:var(--text-sub);margin-bottom:12px" id="user-email">—</p>
+  <div class="tabs">
+    <button class="tab active" type="button" data-panel="profile">ข้อมูลส่วนตัว</button>
+    <button class="tab" type="button" data-panel="buying">ประวัติการซื้อ</button>
+    <button class="tab" type="button" data-panel="selling">ประวัติการขาย</button>
+  </div>
+
+  <div class="panel active" id="panel-profile">
+    <div class="avatar-wrap">
+      <div id="avatar-box" class="avatar avatar-ph">👤</div>
+      <div>
+        <input type="file" id="avatar-input" accept="image/*" hidden>
+        <button class="btn btn-outline" type="button" onclick="document.getElementById('avatar-input').click()">เปลี่ยนรูปประจำตัว</button>
+      </div>
+    </div>
+    <div class="field"><label>ชื่อ</label><input id="firstName" type="text"></div>
+    <div class="field"><label>นามสกุล</label><input id="lastName" type="text"></div>
+    <div class="field"><label>วันเดือนปีเกิด</label><input id="birthDate" type="date"></div>
+    <div class="field"><label>ที่อยู่</label><textarea id="address"></textarea></div>
+    <div class="field"><label>เบอร์โทร</label><input id="phone" type="tel"></div>
+    <button class="btn" type="button" onclick="saveProfile()">บันทึกข้อมูล</button>
+  </div>
+
+  <div class="panel" id="panel-buying"><div id="buying-list" class="empty">กำลังโหลด...</div></div>
+  <div class="panel" id="panel-selling"><div id="selling-list" class="empty">กำลังโหลด...</div></div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn" type="button" onclick="location.href='index.html'"><span>🏠</span><span>หน้าแรก</span></button>
+  <button class="nav-btn" type="button" onclick="location.href='index.html#sell'"><span>📷</span><span>ลงขาย</span></button>
+  <button class="nav-btn active" type="button"><span>👤</span><span>ของฉัน</span></button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://l5sw03zchf.execute-api.ap-northeast-1.amazonaws.com';
+const token = localStorage.getItem('accessToken');
+const userEmail = (localStorage.getItem('userEmail') || '').toLowerCase();
+if (!token) location.href = 'auth.html';
+document.getElementById('user-email').textContent = userEmail || '—';
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+  });
+});
+
+async function loadProfile() {
+  try {
+    const res = await fetch(`${API}/me/profile`, { headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    const p = data.profile;
+    document.getElementById('firstName').value = p.firstName || '';
+    document.getElementById('lastName').value = p.lastName || '';
+    document.getElementById('birthDate').value = p.birthDate || '';
+    document.getElementById('address').value = p.address || '';
+    document.getElementById('phone').value = p.phone || '';
+    if (p.avatarUrl) {
+      const box = document.getElementById('avatar-box');
+      box.outerHTML = `<img class="avatar" id="avatar-box" src="${p.avatarUrl}" alt="avatar">`;
+    }
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function saveProfile() {
+  try {
+    const res = await fetch(`${API}/me/profile`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        firstName: document.getElementById('firstName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
+        birthDate: document.getElementById('birthDate').value,
+        address: document.getElementById('address').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    toast('บันทึกข้อมูลแล้ว');
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+document.getElementById('avatar-input').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const res = await fetch(`${API}/me/avatar`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ contentType: file.type }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    const put = await fetch(data.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+    if (!put.ok) throw new Error('อัปโหลดรูปไม่สำเร็จ');
+    toast('เปลี่ยนรูปประจำตัวแล้ว');
+    loadProfile();
+  } catch (err) {
+    toast(err.message);
+  }
+});
+
+function renderOrders(elId, orders, emptyText) {
+  const el = document.getElementById(elId);
+  if (!orders.length) {
+    el.className = 'empty';
+    el.textContent = emptyText;
+    return;
+  }
+  el.className = '';
+  el.innerHTML = orders.map(o => `
+    <div class="order">
+      <h3>${escapeHtml(o.title || 'สินค้า')}</h3>
+      <p>ราคา ${o.price ? '฿' + Number(o.price).toLocaleString('th-TH') : 'ไม่ระบุ'} · ${new Date(o.createdAt).toLocaleString('th-TH')}</p>
+      <p>${elId === 'buying-list' ? 'ผู้ขาย: ' + escapeHtml(o.sellerEmail) : 'ผู้ซื้อ: ' + escapeHtml(o.buyerEmail)}</p>
+      <span class="status">${escapeHtml(o.status || 'รอดำเนินการ')}</span>
+    </div>`).join('');
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s ?? '';
+  return d.innerHTML;
+}
+
+async function loadOrders() {
+  try {
+    const [buyRes, sellRes] = await Promise.all([
+      fetch(`${API}/me/orders/buying`, { headers: authHeaders() }),
+      fetch(`${API}/me/orders/selling`, { headers: authHeaders() }),
+    ]);
+    const buyData = await buyRes.json();
+    const sellData = await sellRes.json();
+    renderOrders('buying-list', buyData.orders || [], 'ยังไม่มีประวัติการซื้อ');
+    renderOrders('selling-list', sellData.orders || [], 'ยังไม่มีประวัติการขาย');
+  } catch (e) {
+    document.getElementById('buying-list').textContent = e.message;
+    document.getElementById('selling-list').textContent = e.message;
+  }
+}
+
+loadProfile();
+loadOrders();
+</script>
+</body>
+</html>
