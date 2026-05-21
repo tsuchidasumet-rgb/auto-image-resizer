@@ -33,6 +33,8 @@ body{font-family:'Noto Sans Thai',sans-serif;background:var(--bg);color:var(--te
 .order h3{font-size:15px;margin-bottom:4px}
 .order p{font-size:13px;color:var(--text-sub);line-height:1.5}
 .status{display:inline-block;margin-top:6px;padding:3px 10px;background:var(--brand-light);color:var(--brand);border-radius:12px;font-size:11px;font-weight:600}
+.status.sold{background:#e8f5e9;color:#2e7d32}
+.btn-confirm{margin-top:8px;padding:8px 14px;background:var(--brand);color:#fff;border:none;border-radius:4px;font-size:12px;font-family:inherit;cursor:pointer;font-weight:600}
 .empty{text-align:center;padding:32px;color:var(--text-sub);font-size:14px}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:56px;background:var(--surface);border-top:1px solid var(--border);display:flex}
 .nav-btn{flex:1;border:none;background:none;font-family:inherit;font-size:11px;color:var(--text-sub);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
@@ -75,10 +77,11 @@ body{font-family:'Noto Sans Thai',sans-serif;background:var(--bg);color:var(--te
   <div class="panel" id="panel-selling"><div id="selling-list" class="empty">กำลังโหลด...</div></div>
 </div>
 
-<nav class="bottom-nav">
+<nav class="bottom-nav" style="display:grid;grid-template-columns:repeat(4,1fr)">
   <button class="nav-btn" type="button" onclick="location.href='index.html'"><span>🏠</span><span>หน้าแรก</span></button>
+  <button class="nav-btn" type="button" onclick="location.href='index.html#posts'"><span>📦</span><span>โพสของฉัน</span></button>
   <button class="nav-btn" type="button" onclick="location.href='index.html#sell'"><span>📷</span><span>ลงขาย</span></button>
-  <button class="nav-btn active" type="button"><span>👤</span><span>ของฉัน</span></button>
+  <button class="nav-btn active" type="button"><span>👤</span><span>บัญชี</span></button>
 </nav>
 <div class="toast" id="toast"></div>
 
@@ -169,21 +172,50 @@ document.getElementById('avatar-input').addEventListener('change', async e => {
   }
 });
 
+function orderStatusLabel(o) {
+  const s = o.statusLabel || o.status || 'รอยืนยัน';
+  if (s === 'รอชำระ') return 'รอยืนยัน';
+  return s;
+}
+
+async function confirmOrder(orderId) {
+  try {
+    const res = await fetch(`${API}/orders/confirm`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ orderId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    toast(data.message || 'ยืนยันแล้ว');
+    loadOrders();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
 function renderOrders(elId, orders, emptyText) {
   const el = document.getElementById(elId);
+  const isSelling = elId === 'selling-list';
   if (!orders.length) {
     el.className = 'empty';
     el.textContent = emptyText;
     return;
   }
   el.className = '';
-  el.innerHTML = orders.map(o => `
+  el.innerHTML = orders.map(o => {
+    const label = orderStatusLabel(o);
+    const sold = label === 'ขายแล้ว';
+    const canConfirm = isSelling && label === 'รอยืนยัน';
+    return `
     <div class="order">
       <h3>${escapeHtml(o.title || 'สินค้า')}</h3>
       <p>ราคา ${o.price ? '฿' + Number(o.price).toLocaleString('th-TH') : 'ไม่ระบุ'} · ${new Date(o.createdAt).toLocaleString('th-TH')}</p>
-      <p>${elId === 'buying-list' ? 'ผู้ขาย: ' + escapeHtml(o.sellerEmail) : 'ผู้ซื้อ: ' + escapeHtml(o.buyerEmail)}</p>
-      <span class="status">${escapeHtml(o.status || 'รอดำเนินการ')}</span>
-    </div>`).join('');
+      <p>${isSelling ? 'ผู้ซื้อ: ' + escapeHtml(o.buyerEmail) : 'ผู้ขาย: ' + escapeHtml(o.sellerEmail)}</p>
+      <span class="status${sold ? ' sold' : ''}">${escapeHtml(label)}</span>
+      ${canConfirm ? `<button type="button" class="btn-confirm" onclick="confirmOrder('${escapeHtml(o.orderId)}')">ยืนยันการขาย (ขายแล้ว)</button>` : ''}
+    </div>`;
+  }).join('');
 }
 
 function escapeHtml(s) {

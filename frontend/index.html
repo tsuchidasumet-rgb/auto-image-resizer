@@ -179,6 +179,24 @@ body {
   font-size: 10px; padding: 3px 8px; border-radius: 3px;
 }
 
+.badge-sold {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,.75));
+  color: #fff;
+  font-size: 13px; font-weight: 700;
+  text-align: center;
+  padding: 28px 8px 10px;
+  letter-spacing: .5px;
+  pointer-events: none;
+}
+
+.card.is-sold .card-img img { opacity: .88; }
+.card.is-sold { pointer-events: auto; }
+
+.bottom-nav { grid-template-columns: repeat(4, 1fr); }
+.bottom-nav .nav-btn span:first-child { font-size: 17px; }
+.bottom-nav .nav-btn span:last-child { font-size: 10px; }
+
 .btn-del {
   position: absolute; top: 8px; right: 8px;
   width: 30px; height: 30px;
@@ -451,7 +469,7 @@ body {
 <div class="toolbar">
   <div class="toolbar-row">
     <div>
-      <h1>สินค้าทั้งหมด</h1>
+      <h1 id="page-title">สินค้าทั้งหมด</h1>
       <span class="count" id="image-count">กำลังโหลด...</span>
     </div>
     <button class="btn-icon" type="button" onclick="refreshImages()" title="รีเฟรช">↻</button>
@@ -478,8 +496,9 @@ body {
 
 <nav class="bottom-nav">
   <button class="nav-btn active" type="button" id="nav-home" onclick="goHome()"><span>🏠</span><span>หน้าแรก</span></button>
-  <button class="nav-btn" type="button" onclick="openUploadSheet()"><span>📷</span><span>ลงขาย</span></button>
-  <button class="nav-btn" type="button" onclick="location.href='mypage.html'"><span>👤</span><span>ของฉัน</span></button>
+  <button class="nav-btn" type="button" id="nav-posts" onclick="goMyPosts()"><span>📦</span><span>โพสของฉัน</span></button>
+  <button class="nav-btn" type="button" id="nav-sell" onclick="openUploadSheet()"><span>📷</span><span>ลงขาย</span></button>
+  <button class="nav-btn" type="button" id="nav-account" onclick="location.href='mypage.html'"><span>👤</span><span>บัญชี</span></button>
 </nav>
 
 <div class="overlay" id="upload-overlay" onclick="overlayClose(event)">
@@ -558,6 +577,8 @@ let allImages = [];
 let filteredProducts = [];
 let selectedFiles = [];
 let activeCategory = '';
+let viewMode = 'all';
+let soldProductIds = new Set();
 let lightboxProduct = null;
 let lightboxIndex = 0;
 
@@ -772,24 +793,34 @@ async function fetchImageList() {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || err.message || `โหลดไม่สำเร็จ (${res.status})`);
   }
-  return (await res.json()).images || [];
+  const data = await res.json();
+  soldProductIds = new Set(data.soldProductIds || []);
+  return data.images || [];
 }
 
 function groupProducts(images) {
   const map = new Map();
   for (const img of images) {
     const pid = img.productId || img.key;
+    const sold = img.sold || soldProductIds.has(pid);
     if (!map.has(pid)) {
-      map.set(pid, { productId: pid, images: [], ...img });
+      map.set(pid, { productId: pid, images: [], sold, ...img });
     }
     const p = map.get(pid);
     p.images.push(img);
+    p.sold = p.sold || sold;
     if (new Date(img.lastModified) > new Date(p.lastModified)) p.lastModified = img.lastModified;
   }
   return [...map.values()].map(p => {
     p.images.sort((a, b) => a.imageIndex - b.imageIndex);
     return p;
   });
+}
+
+function setNavActive(id) {
+  document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
 }
 
 async function loadImages() {
@@ -814,10 +845,24 @@ async function refreshImages() {
 }
 
 function goHome() {
+  viewMode = 'all';
   activeCategory = '';
   document.getElementById('search-input').value = '';
   document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.remove('active'));
   document.getElementById('chip-all').classList.add('active');
+  document.getElementById('page-title').textContent = 'สินค้าทั้งหมด';
+  setNavActive('nav-home');
+  applyFilters();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goMyPosts() {
+  viewMode = 'mine';
+  activeCategory = '';
+  document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.remove('active'));
+  document.getElementById('chip-all').classList.remove('active');
+  document.getElementById('page-title').textContent = 'โพสที่ฉันลงขาย';
+  setNavActive('nav-posts');
   applyFilters();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -837,6 +882,9 @@ function applyFilters() {
 
   let list = groupProducts(allImages);
 
+  if (viewMode === 'mine') {
+    list = list.filter(p => isOwner(p));
+  }
   if (activeCategory) {
     list = list.filter(p => (p.category || 'อื่นๆ') === activeCategory);
   }
@@ -892,15 +940,17 @@ function renderGrid(products) {
     const cat = p.category || 'อื่นๆ';
     const own = isOwner(p);
     const photoCount = p.images.length;
+    const sold = p.sold;
 
     return `
-      <article class="card" style="animation-delay:${i * 0.03}s" data-product-id="${escapeHtml(p.productId)}">
+      <article class="card${sold ? ' is-sold' : ''}" style="animation-delay:${i * 0.03}s" data-product-id="${escapeHtml(p.productId)}">
         <div class="card-img">
           <img src="${escapeHtml(cover.url)}" alt="${escapeHtml(title)}" loading="lazy">
-          ${isNew ? '<span class="badge-new">ใหม่</span>' : ''}
+          ${sold ? '<span class="badge-sold">ขายแล้ว</span>' : ''}
+          ${!sold && isNew ? '<span class="badge-new">ใหม่</span>' : ''}
           <span class="badge-cat">${escapeHtml(cat)}</span>
           ${photoCount > 1 ? `<span class="card-photos">📷 ${photoCount} รูป</span>` : ''}
-          ${own ? `<button class="btn-del" type="button" data-action="delete" data-product-id="${escapeHtml(p.productId)}" aria-label="ลบ">🗑</button>` : ''}
+          ${own && !sold ? `<button class="btn-del" type="button" data-action="delete" data-product-id="${escapeHtml(p.productId)}" aria-label="ลบ">🗑</button>` : ''}
         </div>
         <div class="card-body">
           ${priceStr ? `<div class="card-price">${escapeHtml(priceStr)}</div>` : ''}
@@ -959,7 +1009,11 @@ async function buyProduct(product) {
     const data = await res.json();
     if (res.status === 401) { logout(); return; }
     if (!res.ok) throw new Error(data.error || 'สั่งซื้อไม่สำเร็จ');
-    showToast(data.message || 'สั่งซื้อสำเร็จ ดูได้ที่หน้าของฉัน');
+    if (data.order?.productId) soldProductIds.add(data.order.productId);
+    allImages = await fetchImageList();
+    applyFilters();
+    closeLightbox();
+    showToast(data.message || 'สั่งซื้อสำเร็จ — รอยืนยัน');
   } catch (err) {
     showToast(err.message);
   }
@@ -983,15 +1037,18 @@ function openLightbox(product, index = 0) {
   const p = formatPrice(product.price);
   priceEl.style.display = p ? 'block' : 'none';
   if (p) priceEl.textContent = p;
-  document.getElementById('lb-meta').textContent =
-    `หมวด ${product.category || 'อื่นๆ'} · ขายโดย ${product.seller || 'ผู้ขาย'} · ${new Date(product.lastModified).toLocaleString('th-TH')}`;
-
   const own = isOwner(product);
-  document.getElementById('lb-delete').style.display = own ? 'inline-block' : 'none';
+  const sold = product.sold;
+  document.getElementById('lb-delete').style.display = own && !sold ? 'inline-block' : 'none';
   document.getElementById('lb-delete').onclick = () => deleteProduct(product.productId);
   const buyBtn = document.getElementById('lb-buy');
-  buyBtn.style.display = own ? 'none' : 'inline-block';
+  buyBtn.style.display = !own && !sold ? 'inline-block' : 'none';
+  buyBtn.textContent = sold ? 'ขายแล้ว' : 'สั่งซื้อ';
+  buyBtn.disabled = !!sold;
   buyBtn.onclick = () => buyProduct(product);
+  const metaExtra = sold ? ' · สถานะ: ขายแล้ว' : '';
+  document.getElementById('lb-meta').textContent =
+    `หมวด ${product.category || 'อื่นๆ'} · ขายโดย ${product.seller || 'ผู้ขาย'} · ${new Date(product.lastModified).toLocaleString('th-TH')}${metaExtra}`;
 
   let nav = document.getElementById('lb-nav');
   if (!nav) {
@@ -1084,6 +1141,7 @@ async function waitForUploadComplete(productId, processedKeys, maxAttempts = 30,
 loadUser();
 loadImages();
 if (location.hash === '#sell') openUploadSheet();
+if (location.hash === '#posts') goMyPosts();
 </script>
 </body>
 </html>

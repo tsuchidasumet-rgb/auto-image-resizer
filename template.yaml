@@ -123,6 +123,7 @@ Resources:
                 - dynamodb:PutItem
                 - dynamodb:UpdateItem
                 - dynamodb:Query
+                - dynamodb:Scan
               Resource:
                 - !GetAtt UserProfilesTable.Arn
                 - !GetAtt OrdersTable.Arn
@@ -199,6 +200,12 @@ Resources:
           Properties:
             ApiId: !Ref HttpApi
             Path: /orders/buy
+            Method: POST
+        ConfirmOrder:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /orders/confirm
             Method: POST
 
   HttpApi:

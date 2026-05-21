@@ -143,6 +143,7 @@ Resources:
           - dynamodb:PutItem
           - dynamodb:UpdateItem
           - dynamodb:Query
+          - dynamodb:Scan
           Resource:
           - Fn::GetAtt:
             - UserProfilesTable
@@ -235,6 +236,13 @@ Resources:
             ApiId:
               Ref: HttpApi
             Path: /orders/buy
+            Method: POST
+        ConfirmOrder:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: HttpApi
+            Path: /orders/confirm
             Method: POST
     Metadata:
       SamResourceId: HttpApiFunction

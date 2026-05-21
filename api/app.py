@@ -68,6 +68,69 @@ def utc_now():
     return datetime.now(timezone.utc).isoformat()
 
 
+ORDER_STATUS_PENDING = 'รอยืนยัน'
+ORDER_STATUS_SOLD = 'ขายแล้ว'
+
+
+def normalize_order_status(status):
+    if status == 'รอชำระ':
+        return ORDER_STATUS_PENDING
+    return status or ORDER_STATUS_PENDING
+
+
+def get_sold_product_ids():
+    table = orders_table()
+    if not table:
+        return set()
+    sold = set()
+    resp = table.scan(ProjectionExpression='productId, #s', ExpressionAttributeNames={'#s': 'status'})
+    sold.update(item['productId'] for item in resp.get('Items', []) if item.get('productId'))
+    while 'LastEvaluatedKey' in resp:
+        resp = table.scan(
+            ProjectionExpression='productId, #s',
+            ExpressionAttributeNames={'#s': 'status'},
+            ExclusiveStartKey=resp['LastEvaluatedKey'],
+        )
+        sold.update(item['productId'] for item in resp.get('Items', []) if item.get('productId'))
+    return sold
+
+
+def product_already_ordered(product_id):
+    table = orders_table()
+    if not table:
+        return False
+    from boto3.dynamodb.conditions import Attr
+    resp = table.scan(
+        FilterExpression=Attr('productId').eq(product_id),
+        ProjectionExpression='orderId',
+        Limit=1,
+    )
+    return bool(resp.get('Items'))
+
+
+def mark_product_sold(product_id):
+    prefix = f'processed/{product_id}/'
+    resp = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix)
+    for obj in resp.get('Contents', []):
+        key = obj['Key']
+        if key.endswith('/'):
+            continue
+        try:
+            head = s3.head_object(Bucket=BUCKET, Key=key)
+            meta = head.get('Metadata', {})
+            meta['sold'] = 'true'
+            s3.copy_object(
+                Bucket=BUCKET,
+                CopySource={'Bucket': BUCKET, 'Key': key},
+                Key=key,
+                Metadata=meta,
+                MetadataDirective='REPLACE',
+                ContentType=head.get('ContentType', 'image/jpeg'),
+            )
+        except ClientError as e:
+            print(f'mark_product_sold {key}: {e}')
+
+
 def lambda_handler(event, context):
     method = event.get('requestContext', {}).get('http', {}).get('method', '')
     path = event.get('rawPath', '')
@@ -85,6 +148,7 @@ def lambda_handler(event, context):
         ('GET', '/me/orders/buying'): handle_orders_buying,
         ('GET', '/me/orders/selling'): handle_orders_selling,
         ('POST', '/orders/buy'): handle_buy,
+        ('POST', '/orders/confirm'): handle_confirm_order,
     }
 
     handler = routes.get((method, path))
@@ -252,6 +316,7 @@ def image_from_s3_object(obj):
         'price': meta.get('price', ''),
         'productId': meta.get('productid', ''),
         'imageIndex': int(meta.get('imageindex', '0') or 0),
+        'sold': meta.get('sold') == 'true',
     }
 
 
@@ -263,8 +328,13 @@ def handle_list_images(event):
             item = image_from_s3_object(obj)
             if item:
                 images.append(item)
+        sold_ids = get_sold_product_ids()
+        for img in images:
+            pid = img.get('productId') or ''
+            if pid in sold_ids or img.get('sold'):
+                img['sold'] = True
         images.sort(key=lambda x: (x.get('productId', ''), x.get('imageIndex', 0), x['lastModified']), reverse=True)
-        return response(200, {'images': images})
+        return response(200, {'images': images, 'soldProductIds': list(sold_ids)})
     except ClientError as e:
         return response(500, {'error': e.response['Error'].get('Message', str(e))})
     except Exception as e:
@@ -437,6 +507,9 @@ def handle_buy(event):
         if seller_email == buyer_email:
             return response(400, {'error': 'ไม่สามารถซื้อสินค้าของตัวเองได้'})
 
+        if product_already_ordered(product_id):
+            return response(400, {'error': 'สินค้านี้ขายแล้ว'})
+
         table = orders_table()
         if not table:
             return response(500, {'error': 'ระบบสั่งซื้อยังไม่พร้อม deploy'})
@@ -449,11 +522,16 @@ def handle_buy(event):
             'sellerEmail': seller_email,
             'title': sample.get('title', 'สินค้า'),
             'price': sample.get('price', ''),
-            'status': 'รอชำระ',
+            'status': ORDER_STATUS_PENDING,
+            'statusLabel': ORDER_STATUS_PENDING,
             'createdAt': utc_now(),
         }
         table.put_item(Item=order)
-        return response(200, {'message': 'สั่งซื้อสำเร็จ รอผู้ขายยืนยัน', 'order': order})
+        mark_product_sold(product_id)
+        return response(200, {
+            'message': 'สั่งซื้อสำเร็จ — สถานะ: รอยืนยัน (รอผู้ขายยืนยัน)',
+            'order': order,
+        })
     except cognito.exceptions.NotAuthorizedException:
         return response(401, {'error': 'Token หมดอายุ'})
     except Exception as e:
@@ -474,11 +552,48 @@ def query_orders_index(index_name, key_name, email):
     return result.get('Items', [])
 
 
+def format_order(item):
+    status = normalize_order_status(item.get('status'))
+    item['status'] = status
+    item['statusLabel'] = status
+    return item
+
+
+def handle_confirm_order(event):
+    try:
+        access_token = get_access_token(event)
+        email, _ = get_cognito_user(access_token)
+        body = json.loads(event.get('body', '{}'))
+        order_id = body.get('orderId', '').strip()
+        if not order_id:
+            return response(400, {'error': 'ต้องระบุ orderId'})
+
+        table = orders_table()
+        if not table:
+            return response(500, {'error': 'ระบบสั่งซื้อยังไม่พร้อม'})
+
+        item = table.get_item(Key={'orderId': order_id}).get('Item')
+        if not item:
+            return response(404, {'error': 'ไม่พบรายการสั่งซื้อ'})
+        if item.get('sellerEmail') != email:
+            return response(403, {'error': 'เฉพาะผู้ขายเท่านั้นที่ยืนยันได้'})
+
+        item['status'] = ORDER_STATUS_SOLD
+        item['statusLabel'] = ORDER_STATUS_SOLD
+        item['confirmedAt'] = utc_now()
+        table.put_item(Item=item)
+        return response(200, {'message': 'ยืนยันการขายแล้ว', 'order': format_order(item)})
+    except cognito.exceptions.NotAuthorizedException:
+        return response(401, {'error': 'Token หมดอายุ'})
+    except Exception as e:
+        return response(500, {'error': str(e)})
+
+
 def handle_orders_buying(event):
     try:
         access_token = get_access_token(event)
         email, _ = get_cognito_user(access_token)
-        orders = query_orders_index('buyer-email-index', 'buyerEmail', email)
+        orders = [format_order(o) for o in query_orders_index('buyer-email-index', 'buyerEmail', email)]
         return response(200, {'orders': orders})
     except cognito.exceptions.NotAuthorizedException:
         return response(401, {'error': 'Token หมดอายุ'})
@@ -490,7 +605,7 @@ def handle_orders_selling(event):
     try:
         access_token = get_access_token(event)
         email, _ = get_cognito_user(access_token)
-        orders = query_orders_index('seller-email-index', 'sellerEmail', email)
+        orders = [format_order(o) for o in query_orders_index('seller-email-index', 'sellerEmail', email)]
         return response(200, {'orders': orders})
     except cognito.exceptions.NotAuthorizedException:
         return response(401, {'error': 'Token หมดอายุ'})
